@@ -88,19 +88,16 @@ func UpgradeTest(details VersionDetails) func(t *testing.T) {
 
 func EnsureUninstall(uninstallAll bool) (string, error) {
 	daprPath := getDaprPath()
+	args := []string{
+		"uninstall", "-k",
+		"-n", DaprTestNamespace,
+		"--log-as-json"}
 
 	if uninstallAll {
-		return spawn.Command(daprPath,
-			"uninstall", "-k",
-			"-n", DaprTestNamespace,
-			"--log-as-json",
-			"--all")
-	} else {
-		return spawn.Command(daprPath,
-			"uninstall", "-k",
-			"-n", DaprTestNamespace,
-			"--log-as-json")
+		args = append(args, "--all")
 	}
+
+	return spawn.Command(daprPath, args...)
 }
 
 func DeleteCRD(crds []string) func(*testing.T) {
@@ -135,14 +132,8 @@ func GetTestsOnInstall(details VersionDetails, opts TestOptions) []TestCase {
 
 func GetTestsOnUninstall(details VersionDetails, opts TestOptions) []TestCase {
 	return []TestCase{
-		{"uninstall " + details.RuntimeVersion, uninstallTest(false)}, // waits for pod deletion
-		{"crds exist on uninstall " + details.RuntimeVersion, CRDTest(details, opts)},
-		{"clusterroles not exist " + details.RuntimeVersion, ClusterRolesTest(details, opts)},
-		{"clusterrolebindings not exist " + details.RuntimeVersion, ClusterRoleBindingsTest(details, opts)},
-		{"check components exist on uninstall " + details.RuntimeVersion, componentsTestOnUninstall()},
-		{"check mtls error " + details.RuntimeVersion, uninstallMTLSTest()},
-		{"check status error " + details.RuntimeVersion, statusTestOnUninstall()},
-
+		// {"uninstall " + details.RuntimeVersion, uninstallTest(false)}, // waits for pod deletion
+		// {"crds exist on uninstall " + details.RuntimeVersion, CRDTest(details, opts)},
 		// Run additional variant to clean out CRD, test idempotency against uninstall without all.
 		{"uninstall " + details.RuntimeVersion, uninstallTest(true)}, // waits for pod deletion
 		// Test that CRDs do not exist on uninstall
@@ -152,6 +143,11 @@ func GetTestsOnUninstall(details VersionDetails, opts TestOptions) []TestCase {
 			},
 		}),
 		},
+		{"clusterroles not exist " + details.RuntimeVersion, ClusterRolesTest(details, opts)},
+		{"clusterrolebindings not exist " + details.RuntimeVersion, ClusterRoleBindingsTest(details, opts)},
+		{"check components exist on uninstall " + details.RuntimeVersion, componentsTestOnUninstall()},
+		{"check mtls error " + details.RuntimeVersion, uninstallMTLSTest()},
+		{"check status error " + details.RuntimeVersion, statusTestOnUninstall()},
 	}
 }
 
@@ -486,7 +482,7 @@ func uninstallTest(uninstallAll bool) func(t *testing.T) {
 		go waitPodDeletion(t, done, podsDeleted)
 		select {
 		case <-podsDeleted:
-			t.Log("pods were delted as expected on uninstall")
+			t.Log("pods were deleted as expected on uninstall")
 			return
 		case <-time.After(2 * time.Minute):
 			done <- struct{}{}
