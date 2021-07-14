@@ -28,7 +28,7 @@ var currentVersionDetails = common.VersionDetails{
 
 func ensureCleanEnv(t *testing.T, details common.VersionDetails) {
 	// Ensure a clean environment
-	common.EnsureUninstall() // does not wait for pod deletion
+	common.EnsureUninstall(false) // does not wait for pod deletion
 	t.Run("delete CRDs "+details.RuntimeVersion, common.DeleteCRD(details.CustomResourceDefs))
 }
 
