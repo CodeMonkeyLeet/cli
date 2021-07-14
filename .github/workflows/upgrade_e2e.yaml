@@ -6,12 +6,13 @@
 name: E2E - Upgrade path tests - KinD
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
       - release-*
-  schedule:
-    - cron: '0 */3 * * *'
+  # schedule:
+  #   - cron: '0 */3 * * *'
   pull_request:
     branches:
       - master
