@@ -90,11 +90,12 @@ func EnsureUninstall(uninstallAll bool) (string, error) {
 	daprPath := getDaprPath()
 	args := []string{
 		"uninstall", "-k",
-		"-n", DaprTestNamespace,
 		"--log-as-json"}
 
 	if uninstallAll {
 		args = append(args, "--all")
+	} else {
+		args = append(args, "-n", DaprTestNamespace)
 	}
 
 	return spawn.Command(daprPath, args...)
